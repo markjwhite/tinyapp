@@ -38,7 +38,6 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  console.log(req.params);
   res.redirect(urlDatabase[req.params.shortURL]);
 });
 
