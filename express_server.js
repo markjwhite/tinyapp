@@ -66,11 +66,18 @@ app.post("/urls/:shortURL/update", (req, res) => {
   res.redirect('/urls');
 });
 
+//login route
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username);
+  res.redirect("/urls");
+});
+
 
 //starts sever on specified port
 app.listen(PORT, () => {
   console.log(`Example app is listening on port ${PORT}`);
 });
+
 
 const generateRandomString = () => {
   const random = Math.random().toString(36).substring(6);
