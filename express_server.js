@@ -58,6 +58,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 });
 
+//edits a longURL in the db - UPDATE (POST)
 app.post("/urls/:shortURL/update", (req, res) => {
   //edit urlDatabase'
   console.log(req.body);
