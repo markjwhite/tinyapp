@@ -75,6 +75,11 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
+app.post("/logout", (req, res) => {
+  res.clearCookie("username")
+  res.redirect("/urls")
+})
+
 //starts sever on specified port
 app.listen(PORT, () => {
   console.log(`Example app is listening on port ${PORT}`);
