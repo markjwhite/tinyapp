@@ -10,8 +10,8 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }))
 
 
-//====DATABASE====//
-
+//---Database---//
+//obj stands in for database
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
