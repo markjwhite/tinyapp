@@ -51,7 +51,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`urls/${random}`);
 });
 
-//deletes a quote from the db - DELETE (POST)
+//deletes a url from the db - DELETE (POST)
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls')
