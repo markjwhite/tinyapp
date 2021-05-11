@@ -19,7 +19,14 @@
             <%= shortURL %>
           </a></p>
       </div>
-      <div class="card-footer text-muted"></div>
+      <div class="card-footer text-muted">
+        <h4>Update URL</h4>
+        <form action="/urls/<%= shortURL %>/update" method="POST">
+          <label for="update_url">Edit URL:</label>
+          <input type="text" name="update_url" placeholder="http://" required>
+          <input type="submit" class="btn-sm btn-primary">
+        </form>
+      </div>
     </div>
     <!-- Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
