@@ -9,22 +9,22 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <div>
-          <% if (!username) { %>
-            <form method="POST" action="/login">
-              <input type="text" name="username" placeholder="enter username" require>
-              <input type="submit" class="btn-sm btn-primary" value="Login">
-            </form>
-            <% } else { %>
-              <form method="POST" action="/logout">
-                <input type="submit" class="btn-sm btn-danger" value="Logout">
-                <label for="username">
-                  <%= username %>
-                </label>
-              </form>
-              <% } %>
-        </div>
       </div>
+    </div>
+    <div>
+      <% if (!username) { %>
+        <form method="POST" action="/login">
+          <input type="text" name="username" placeholder="enter username" require>
+          <input type="submit" class="btn-sm btn-primary" value="Login">
+        </form>
+        <% } else { %>
+          <form method="POST" action="/logout">
+            <label for="username">
+              <%= username %>
+            </label>
+            <input type="submit" class="btn-sm btn-danger" value="Logout">
+          </form>
+          <% } %>
     </div>
   </nav>
 </header>
