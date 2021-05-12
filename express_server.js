@@ -37,13 +37,23 @@ const generateRandomString = () => {
   return random;
 };
 
-const fetchUser = (email, db) => {
-  for (const user in db) {
-    if (db[user].email === email) {
+const fetchUser = (email) => {
+  for (const user in userDatabase) {
+    if (userDatabase[user].email === email) {
       return user;
     }
   }
   return null;
+}
+
+const fetchUserbyID = (userID) => {
+  for (const user_id in userDatabase) {
+    if (userID === user_id) {
+      const user = users[user_id]
+      return user;
+    }
+  }
+  return undefined;
 }
 
 const createUser = (userParams, db, id) => {
@@ -76,19 +86,19 @@ app.get("/hello", (req, res) => {
 
 //---Displays urls_index (Main Page)---//
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user: req.cookies["user_id"] };
+  const templateVars = { urls: urlDatabase, user: fetchUserbyID(req.cookies["user_id"]) };
   res.render("urls_index", templateVars)
 });
 
 //---Displays urls_new (Creation Page)---//
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user: req.cookies["user_id"] }
+  const templateVars = { user: fetchUserbyID(req.cookies["user_id"]) }
   res.render("urls_new", templateVars);
 });
 
 //---Displays urls_show (Any shortURL)---//
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: req.cookies["user_id"] };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: fetchUserbyID(req.cookies["user_id"]) };
 
   res.render("urls_show", templateVars);
 });
@@ -143,9 +153,9 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const templateVars = { user: "user_Id" }
+  const templateVars = { user: fetchUserbyID(req.cookies["user_id"]) }
   res.render("login", templateVars);
-})
+});
 
 //---Logout Route---//
 
@@ -157,7 +167,7 @@ app.post("/logout", (req, res) => {
 //---Register Routes---//
 //displays register (Registration Page)
 app.get("/register", (req, res) => {
-  const templateVars = { user: "user_id" }
+  const templateVars = { user: fetchUserbyID(req.cookies["user_id"]) }
   res.render("register", templateVars)
 });
 

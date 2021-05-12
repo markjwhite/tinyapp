@@ -12,15 +12,15 @@
       </div>
     </div>
     <div>
-      <% if (!user) { %>
-        <a class="btn btn-light btn-sm" href="/login" role="button">Login</a>
-        <a class="btn btn-primary btn-sm" href="/register" role="button">Register</a>
+      <% if (user) { %>
+        <form method="POST" action="/logout">
+          <%= user.email %>
+            <input type="submit" class="btn-sm btn-danger" value="Logout">
+        </form>
         <% } else { %>
-          <form method="POST" action="/logout">
+          <a class="btn btn-light btn-sm" href="/login" role="button">Login</a>
+          <a class="btn btn-primary btn-sm" href="/register" role="button">Register</a>
 
-            <%= user.email %>
-              <input type="submit" class="btn-sm btn-danger" value="Logout">
-          </form>
           <% } %>
     </div>
   </nav>
