@@ -17,10 +17,9 @@
         <a class="btn btn-primary btn-sm" href="/register" role="button">Register</a>
         <% } else { %>
           <form method="POST" action="/logout">
-            <label for="username">
-              <%= user.email %>
-            </label>
-            <input type="submit" class="btn-sm btn-danger" value="Logout">
+
+            <%= user.email %>
+              <input type="submit" class="btn-sm btn-danger" value="Logout">
           </form>
           <% } %>
     </div>

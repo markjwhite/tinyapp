@@ -27,7 +27,7 @@ const userDatabase = {
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: "marky"
   }
 };
 
@@ -126,8 +126,20 @@ app.post("/urls/:shortURL/update", (req, res) => {
 //---Login Route---//
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect("/urls");
+  const logEmail = req.body.email;
+  const logPass = req.body.password;
+
+  if (fetchUser(logEmail, userDatabase)) {
+    let currentUser = fetchUser(logEmail, userDatabase);
+    if (logPass === userDatabase[currentUser].password) {
+      res.cookie("user_id", userDatabase[currentUser].id);
+      res.redirect("/urls");
+    } else {
+      res.status(403).send("Invalid Password")
+    }
+  } else {
+    res.status(403).send("Invalid Email")
+  }
 });
 
 app.get("/login", (req, res) => {
@@ -138,7 +150,7 @@ app.get("/login", (req, res) => {
 //---Logout Route---//
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username")
+  res.clearCookie("user_id")
   res.redirect("/urls")
 });
 
@@ -161,9 +173,6 @@ app.post("/register", (req, res) => {
     res.redirect("/urls")
   }
 });
-
-
-
 
 //---Start Server---//
 app.listen(PORT, () => {
