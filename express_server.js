@@ -130,6 +130,11 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
+app.get("/login", (req, res) => {
+  const templateVars = { user: "user_Id" }
+  res.render("login", templateVars);
+})
+
 //---Logout Route---//
 
 app.post("/logout", (req, res) => {
@@ -140,9 +145,11 @@ app.post("/logout", (req, res) => {
 //---Register Routes---//
 //displays register (Registration Page)
 app.get("/register", (req, res) => {
-  res.render("register")
+  const templateVars = { user: "user_id" }
+  res.render("register", templateVars)
 });
 
+//registers new user
 app.post("/register", (req, res) => {
   let id = generateRandomString();
   const newUser = createUser(req.body, userDatabase, id);
@@ -153,8 +160,9 @@ app.post("/register", (req, res) => {
     res.cookie("user_id", newUser)
     res.redirect("/urls")
   }
+});
 
-})
+
 
 
 //---Start Server---//
