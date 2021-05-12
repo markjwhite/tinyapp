@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const { response } = require('express');
 
 const app = express();
 const PORT = 8080;
@@ -38,7 +39,7 @@ const generateRandomString = () => {
 
 const fetchUser = (email, db) => {
   for (const user in db) {
-    if (user.email === email) {
+    if (db[user].email === email) {
       return user;
     }
   }
@@ -47,13 +48,13 @@ const fetchUser = (email, db) => {
 
 const createUser = (userParams, db, id) => {
   console.log(userParams);
-  if (fetchUser(userParams.email)) {
-    return { data: null, error: "user already exists!" }
+  if (fetchUser(userParams.email, userDatabase)) {
+    return { error: "statusCode 400 - User alreadys exists." }
   }
   const { email, password } = userParams;
 
   if (!email || !password) {
-    return { data: null, error: "invalid field/fields" }
+    return { error: "statusCode 400 - Invalid field/fields" }
   }
   db[id] = { id, email, password }
   return { id, email, password }
@@ -146,11 +147,13 @@ app.post("/register", (req, res) => {
   let id = generateRandomString();
   const newUser = createUser(req.body, userDatabase, id);
   if (newUser.error) {
-    res.send(newUser.error);
+    res.send(newUser.error)
   } else {
+    console.log(userDatabase)
     res.cookie("user_id", newUser)
     res.redirect("/urls")
   }
+
 })
 
 
