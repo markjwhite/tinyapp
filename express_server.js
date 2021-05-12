@@ -92,8 +92,12 @@ app.get("/urls", (req, res) => {
 
 //---Displays urls_new (Creation Page)---//
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user: fetchUserbyID(req.cookies["user_id"]) }
-  res.render("urls_new", templateVars);
+  if (req.cookies["user_id"]) {
+    const templateVars = { user: fetchUserbyID(req.cookies["user_id"]) }
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login")
+  }
 });
 
 //---Displays urls_show (Any shortURL)---//
