@@ -36,17 +36,6 @@ const userDatabase = {
   }
 };
 
-//---Helper Function---//
-
-
-
-
-
-
-
-
-
-
 //=======R O U T E S=======//
 
 app.get("/", (req, res) => {
