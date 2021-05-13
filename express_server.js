@@ -46,7 +46,7 @@ const fetchUser = (email) => {
   return null;
 }
 
-const fetchUserbyID = (userID) => {
+const fetchUserByID = (userID) => {
   for (const user_id in userDatabase) {
     if (userID === user_id) {
       const user = userDatabase[user_id]
@@ -97,7 +97,7 @@ app.get("/hello", (req, res) => {
 //---Displays urls_index (Main Page)---//
 app.get("/urls", (req, res) => {
   if (req.cookies["user_id"]) {
-    const currentUser = fetchUserbyID(req.cookies["user_id"])
+    const currentUser = fetchUserByID(req.cookies["user_id"])
     console.log(currentUser)
     const templateVars = { urls: urlsForUsers(req.cookies["user_id"], urlDatabase), user: currentUser };
     res.render("urls_index", templateVars)
@@ -109,7 +109,7 @@ app.get("/urls", (req, res) => {
 //---Displays urls_new (Creation Page)---//
 app.get("/urls/new", (req, res) => {
   if (req.cookies["user_id"]) {
-    const templateVars = { user: fetchUserbyID(req.cookies["user_id"]) }
+    const templateVars = { user: fetchUserByID(req.cookies["user_id"]) }
     res.render("urls_new", templateVars);
   } else {
     res.redirect("/login")
@@ -118,7 +118,7 @@ app.get("/urls/new", (req, res) => {
 
 //---Displays urls_show (Any shortURL)---//
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: fetchUserbyID(req.cookies["user_id"]) };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: fetchUserByID(req.cookies["user_id"]) };
 
   res.render("urls_show", templateVars);
 });
@@ -140,7 +140,7 @@ app.post("/urls", (req, res) => {
 //---URL Deletion---//
 //deletes a url from the db - DELETE (POST)
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const currentUser = fetchUserbyID(req.cookies["user_id"])
+  const currentUser = fetchUserByID(req.cookies["user_id"])
   if (!currentUser) {
     res.status(403).send("Not Your Account GTFO!")
   } else {
@@ -153,7 +153,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //edits a longURL in the db - UPDATE (POST)
 app.post("/urls/:shortURL/update", (req, res) => {
   //edit urlDatabase'
-  const currentUser = fetchUserbyID(req.cookies["user_id"])
+  const currentUser = fetchUserByID(req.cookies["user_id"])
   if (!currentUser) {
     res.status(403).send("Not Your Account STFO")
   } else {
@@ -184,7 +184,7 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const templateVars = { user: fetchUserbyID(req.cookies["user_id"]) }
+  const templateVars = { user: fetchUserByID(req.cookies["user_id"]) }
   res.render("login", templateVars);
 });
 
@@ -198,7 +198,7 @@ app.post("/logout", (req, res) => {
 //---Register Routes---//
 //displays register (Registration Page)
 app.get("/register", (req, res) => {
-  const templateVars = { user: fetchUserbyID(req.cookies["user_id"]) }
+  const templateVars = { user: fetchUserByID(req.cookies["user_id"]) }
   res.render("register", templateVars)
 });
 
