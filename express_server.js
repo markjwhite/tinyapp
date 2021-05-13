@@ -51,7 +51,7 @@ const userDatabase = {
 //=======R O U T E S=======//
 
 app.get("/", (req, res) => {
-  if (req.session.user_id) {
+  if (req.currentUser) {
     res.redirect("/urls");
   } else {
     res.redirect("/login");
@@ -64,17 +64,17 @@ app.get("/urls.json", (req, res) => {
 
 //---Displays urls_index (Main Page)---//
 app.get("/urls", (req, res) => {
-  if (req.session.user_id) {
-    const templateVars = { urls: urlsForUsers(req.session.user_id, urlDatabase), user: req.currentUser };
+  if (req.currentUser) {
+    const templateVars = { urls: urlsForUsers(req.currentUser.id, urlDatabase), user: req.currentUser };
     res.render("urls_index", templateVars)
   } else {
-    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401: You must be logged in to access this page. If you are not directed to the login page in 5 seconds <a href=/login>click here</a>.</h1></body></html>')
+    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>')
   }
 });
 
 //---Displays urls_new (Creation Page)---//
 app.get("/urls/new", (req, res) => {
-  if (req.session.user_id) {
+  if (req.currentUser) {
     const templateVars = { user: req.currentUser }
     res.render("urls_new", templateVars);
   } else {
@@ -84,46 +84,66 @@ app.get("/urls/new", (req, res) => {
 
 //---Displays urls_show (Any shortURL)---//
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: req.currentUser };
-
-  res.render("urls_show", templateVars);
+  if (req.currentUser) {
+    if (!urlDatabase[req.params.shortURL]) {
+      res.status(404).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 404 Not Found: The Page You Requested Cannot Be Found. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>')
+      //checks if user matches url owner id
+    } else if (urlDatabase[req.params.shortURL].userID === req.currentUser.id) {
+      const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: req.currentUser };
+      res.render("urls_show", templateVars);
+    } else {
+      res.status(403).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>')
+    }
+  }
 });
 
 //---shortURL to longURL---//
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
+  if (!urlDatabase[req.params.shortURL].longURL) {
+    res.status(404).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 404 Not Found: The Page You Requested Cannot Be Found. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>')
+  } else {
+    const longURL = urlDatabase[req.params.shortURL].longURL;
+    res.redirect(longURL);
+  }
+
 });
 
 //---shortURL Creation---//
 app.post("/urls", (req, res) => {
   //New URL
-  const random = generateRandomString();
-  urlDatabase[random] = { longURL: req.body.longURL, userID: req.session.user_id }
-  res.redirect(`urls/${random}`);
+  if (!req.currentUser) {
+    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>')
+  } else {
+    const random = generateRandomString();
+    urlDatabase[random] = { longURL: req.body.longURL, userID: req.currentUser.id }
+    res.redirect(`urls/${random}`);
+  }
 });
 
 //---URL Deletion---//
 //deletes a url from the db - DELETE (POST)
 app.post("/urls/:shortURL/delete", (req, res) => {
-  if (!req.currentUser) {
-    res.status(403).send("Not Your Account GTFO!") //add html
-  } else {
+  if (req.currentUser && urlDatabase[req.params.shortURL].userID === req.currentUser.id) {
     delete urlDatabase[req.params.shortURL];
     res.redirect('/urls')
+  } else if (req.currentUser && !urlDatabase[req.params.shortURL].userID === req.currentUser.id) {
+    res.status(403).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>')
+  } else {
+    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>')
   }
 });
 
 //---URL Edit---//
 //edits a longURL in the db - UPDATE (POST)
 app.post("/urls/:shortURL/update", (req, res) => {
-  if (!req.currentUser) {
-    res.status(403).send("Not Your Account STFO")
-  } else {
+  if (req.currentUser && urlDatabase[req.params.shortURL].userID === req.currentUser.id) {
     urlDatabase[req.params.shortURL].longURL = req.body.updateURL;
     res.redirect('/urls');
+  } else if (req.currentUser && !urlDatabase[req.params.shortURL].userID === req.currentUser.id) {
+    res.status(403).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>')
+  } else {
+    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>')
   }
-
 });
 
 //---Login Routes---//
@@ -137,28 +157,35 @@ app.post("/login", (req, res) => {
     req.session.user_id = currentUser.id;
     res.redirect("/urls");
   } else {
-    res.status(401).send("Invalid Credentials") //add html
+    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: Invalid Credentials. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>')
   }
 });
 //displays login page
 app.get("/login", (req, res) => {
-  const templateVars = { user: req.currentUser }
-  res.render("login", templateVars);
+  if (req.currentUser) {
+    res.redirect('/urls')
+  } else {
+    const templateVars = { user: req.currentUser }
+    res.render("login", templateVars);
+  }
 });
 
 //---Logout Route---//
 //deletes encrypted cookies
 app.post("/logout", (req, res) => {
   req.session = null;
-  // res.clearCookie("user_id")
   res.redirect("/urls")
 });
 
 //---Register Routes---//
 //displays register (Registration Page)
 app.get("/register", (req, res) => {
-  const templateVars = { user: req.currentUser }
-  res.render("register", templateVars)
+  if (req.currentUser) {
+    res.redirect('/urls')
+  } else {
+    const templateVars = { user: req.currentUser }
+    res.render("register", templateVars)
+  }
 });
 
 //registers new user and adds it to userDatabase - CREATE (POST)
@@ -166,9 +193,9 @@ app.post("/register", (req, res) => {
   let randomID = generateRandomString();
   const newUser = createUser(req.body, userDatabase, randomID);
   if (newUser.error === "email") {
-    res.status(400).send("Invalid Email") //add html
+    res.status(400).send('<html><meta http-equiv=refresh content=5;URL=/register /><body><h1>Error 400: Bad Request: Invalid Email. If you are not redirected in 5 seconds <a href=/register>click here</a>.</h1></body></html>')
   } else if (newUser.error === "password") {
-    res.status(400).send("Invalid Password") //add html
+    res.status(400).send('<html><meta http-equiv=refresh content=5;URL=/register /><body><h1>Error 400: Bad Request: Invalid Password. If you are not redirected in 5 seconds <a href=/register>click here</a>.</h1></body></html>')
   } else {
     req.session.user_id = userDatabase[randomID].id
     res.redirect("/urls")
