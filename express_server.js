@@ -51,7 +51,11 @@ const userDatabase = {
 //=======R O U T E S=======//
 
 app.get("/", (req, res) => {
-  res.redirect("/urls")
+  if (req.session.user_id) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.get("/urls.json", (req, res) => {
@@ -64,7 +68,7 @@ app.get("/urls", (req, res) => {
     const templateVars = { urls: urlsForUsers(req.session.user_id, urlDatabase), user: req.currentUser };
     res.render("urls_index", templateVars)
   } else {
-    res.redirect("/login")
+    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401: You must be logged in to access this page. If you are not directed to the login page in 5 seconds <a href=/login>click here</a>.</h1></body></html>')
   }
 });
 
@@ -162,9 +166,9 @@ app.post("/register", (req, res) => {
   let randomID = generateRandomString();
   const newUser = createUser(req.body, userDatabase, randomID);
   if (newUser.error === "email") {
-    res.status(400).send("Invalid Email")
+    res.status(400).send("Invalid Email") //add html
   } else if (newUser.error === "password") {
-    res.status(400).send("Invalid Password")
+    res.status(400).send("Invalid Password") //add html
   } else {
     req.session.user_id = userDatabase[randomID].id
     res.redirect("/urls")
