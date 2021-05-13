@@ -14,8 +14,8 @@ app.use(bodyParser.urlencoded({ extended: true }))
 //---Databases---//
 //obj stands in for database
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "aJ48lW" },
+  "9sm5xK": { longURL: "http://www.google.com", userID: "aJ48lW" }
 };
 
 const userDatabase = {
@@ -49,7 +49,7 @@ const fetchUser = (email) => {
 const fetchUserbyID = (userID) => {
   for (const user_id in userDatabase) {
     if (userID === user_id) {
-      const user = users[user_id]
+      const user = userDatabase[user_id]
       return user;
     }
   }
@@ -59,15 +59,25 @@ const fetchUserbyID = (userID) => {
 const createUser = (userParams, db, id) => {
   console.log(userParams);
   if (fetchUser(userParams.email, userDatabase)) {
-    return { error: "statusCode 400 - User alreadys exists." }
+    return { error: "email" }
   }
   const { email, password } = userParams;
 
   if (!email || !password) {
-    return { error: "statusCode 400 - Invalid field/fields" }
+    return { error: "password" }
   }
   db[id] = { id, email, password }
   return { id, email, password }
+};
+
+const urlsForUsers = (id, db) => {
+  const userURLS = {};
+  for (const user in db) {
+    if (db[user].userID === id) {
+      userURLS[user] = db[user];
+    }
+  }
+  return userURLS
 };
 
 //=======R O U T E S=======//
@@ -86,8 +96,14 @@ app.get("/hello", (req, res) => {
 
 //---Displays urls_index (Main Page)---//
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user: fetchUserbyID(req.cookies["user_id"]) };
-  res.render("urls_index", templateVars)
+  if (req.cookies["user_id"]) {
+    const currentUser = fetchUserbyID(req.cookies["user_id"])
+    console.log(currentUser)
+    const templateVars = { urls: urlsForUsers(req.cookies["user_id"], urlDatabase), user: currentUser };
+    res.render("urls_index", templateVars)
+  } else {
+    res.redirect("/login")
+  }
 });
 
 //---Displays urls_new (Creation Page)---//
@@ -102,39 +118,50 @@ app.get("/urls/new", (req, res) => {
 
 //---Displays urls_show (Any shortURL)---//
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: fetchUserbyID(req.cookies["user_id"]) };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: fetchUserbyID(req.cookies["user_id"]) };
 
   res.render("urls_show", templateVars);
 });
 
 //---shortURL to longURL---//
 app.get("/u/:shortURL", (req, res) => {
-  res.redirect(urlDatabase[req.params.shortURL]);
+  const longURL = urlDatabase[req.params.shortURL].longURL;
+  res.redirect(longURL);
 });
 
 //---shortURL Creation---//
 app.post("/urls", (req, res) => {
   //New URL
   const random = generateRandomString();
-  urlDatabase[random] = req.body.longURL;
+  urlDatabase[random] = { longURL: req.body.longURL, userID: req.cookies["user_id"] }
   res.redirect(`urls/${random}`);
 });
 
 //---URL Deletion---//
 //deletes a url from the db - DELETE (POST)
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect('/urls')
-
+  const currentUser = fetchUserbyID(req.cookies["user_id"])
+  if (!currentUser) {
+    res.status(403).send("Not Your Account GTFO!")
+  } else {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect('/urls')
+  }
 });
 
 //---URL Edit---//
 //edits a longURL in the db - UPDATE (POST)
 app.post("/urls/:shortURL/update", (req, res) => {
   //edit urlDatabase'
-  console.log(req.body);
-  urlDatabase[req.params.shortURL] = req.body.updateURL;
-  res.redirect('/urls');
+  const currentUser = fetchUserbyID(req.cookies["user_id"])
+  if (!currentUser) {
+    res.status(403).send("Not Your Account STFO")
+  } else {
+    console.log(req.body);
+    urlDatabase[req.params.shortURL].longURL = req.body.updateURL;
+    res.redirect('/urls');
+  }
+
 });
 
 //---Login Route---//
@@ -179,11 +206,13 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   let id = generateRandomString();
   const newUser = createUser(req.body, userDatabase, id);
-  if (newUser.error) {
-    res.send(newUser.error)
+  if (newUser.error === "email") {
+    res.status(400).send("Invalid Email")
+  } else if (newUser.error === "password") {
+    res.status(400).send("Invalid Password")
   } else {
     console.log(userDatabase)
-    res.cookie("user_id", newUser)
+    res.cookie("user_id", userDatabase[id].id)
     res.redirect("/urls")
   }
 });
