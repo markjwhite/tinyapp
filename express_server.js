@@ -49,17 +49,17 @@ const userDatabase = {
 };
 
 //---Status Code HTML---//
-const code400Email = '<html><meta http-equiv=refresh content=5;URL=/register /><body><h1>Error 400: Bad Request: Invalid Email. If you are not redirected in 5 seconds <a href=/register>click here</a>.</h1></body></html>'
+const code400Email = '<html><meta http-equiv=refresh content=5;URL=/register /><body><h1>Error 400: Bad Request: Invalid Email. If you are not redirected in 5 seconds <a href=/register>click here</a>.</h1></body></html>';
 
-const code400Pass = '<html><meta http-equiv=refresh content=5;URL=/register /><body><h1>Error 400: Bad Request: Invalid Password. If you are not redirected in 5 seconds <a href=/register>click here</a>.</h1></body></html>'
+const code400Pass = '<html><meta http-equiv=refresh content=5;URL=/register /><body><h1>Error 400: Bad Request: Invalid Password. If you are not redirected in 5 seconds <a href=/register>click here</a>.</h1></body></html>';
 
-const code401 = '<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>'
+const code401 = '<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>';
 
-const code401Cred = '<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: Invalid Credentials. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>'
+const code401Cred = '<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: Invalid Credentials. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>';
 
-const code403 = '<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>'
+const code403 = '<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>';
 
-const code404 = '<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 404 Not Found: The Page You Requested Cannot Be Found. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>'
+const code404 = '<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 404 Not Found: The Page You Requested Cannot Be Found. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>';
 
 
 
