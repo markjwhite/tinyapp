@@ -6,7 +6,7 @@ const fetchUserByEmail = (email, db) => {
       return user;
     }
   }
-  return null;
+  return undefined;
 };
 
 const fetchUserByID = (userID, db) => {
