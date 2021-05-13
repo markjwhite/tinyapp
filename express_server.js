@@ -48,6 +48,21 @@ const userDatabase = {
   }
 };
 
+//---Status Code HTML---//
+const code400Email = '<html><meta http-equiv=refresh content=5;URL=/register /><body><h1>Error 400: Bad Request: Invalid Email. If you are not redirected in 5 seconds <a href=/register>click here</a>.</h1></body></html>'
+
+const code400Pass = '<html><meta http-equiv=refresh content=5;URL=/register /><body><h1>Error 400: Bad Request: Invalid Password. If you are not redirected in 5 seconds <a href=/register>click here</a>.</h1></body></html>'
+
+const code401 = '<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>'
+
+const code401Cred = '<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: Invalid Credentials. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>'
+
+const code403 = '<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>'
+
+const code404 = '<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 404 Not Found: The Page You Requested Cannot Be Found. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>'
+
+
+
 //=======R O U T E S=======//
 
 app.get("/", (req, res) => {
@@ -68,7 +83,7 @@ app.get("/urls", (req, res) => {
     const templateVars = { urls: urlsForUsers(req.currentUser.id, urlDatabase), user: req.currentUser };
     res.render("urls_index", templateVars);
   } else {
-    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>');
+    res.status(401).send(code401);
   }
 });
 
@@ -86,13 +101,13 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   if (req.currentUser) {
     if (!urlDatabase[req.params.shortURL]) {
-      res.status(404).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 404 Not Found: The Page You Requested Cannot Be Found. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>');
+      res.status(404).send(code404);
       //checks if user matches url owner id
     } else if (urlDatabase[req.params.shortURL].userID === req.currentUser.id) {
       const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: req.currentUser };
       res.render("urls_show", templateVars);
     } else {
-      res.status(403).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>');
+      res.status(403).send(code403);
     }
   }
 });
@@ -100,19 +115,18 @@ app.get("/urls/:shortURL", (req, res) => {
 //---shortURL to longURL---//
 app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL].longURL) {
-    res.status(404).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 404 Not Found: The Page You Requested Cannot Be Found. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>');
+    res.status(404).send(code404);
   } else {
     const longURL = urlDatabase[req.params.shortURL].longURL;
     res.redirect(longURL);
   }
-
 });
 
 //---shortURL Creation---//
 app.post("/urls", (req, res) => {
   //New URL
   if (!req.currentUser) {
-    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>');
+    res.status(401).send(code401);
   } else {
     const random = generateRandomString();
     urlDatabase[random] = { longURL: req.body.longURL, userID: req.currentUser.id };
@@ -127,9 +141,9 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     delete urlDatabase[req.params.shortURL];
     res.redirect('/urls');
   } else if (req.currentUser && !urlDatabase[req.params.shortURL].userID === req.currentUser.id) {
-    res.status(403).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>');
+    res.status(403).send(code403);
   } else {
-    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>');
+    res.status(401).send(code401);
   }
 });
 
@@ -140,9 +154,9 @@ app.post("/urls/:shortURL/update", (req, res) => {
     urlDatabase[req.params.shortURL].longURL = req.body.updateURL;
     res.redirect('/urls');
   } else if (req.currentUser && !urlDatabase[req.params.shortURL].userID === req.currentUser.id) {
-    res.status(403).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>');
+    res.status(403).send(code403);
   } else {
-    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>');
+    res.status(401).send(code401);
   }
 });
 
@@ -157,7 +171,7 @@ app.post("/login", (req, res) => {
     req.session.user_id = currentUser.id;
     res.redirect("/urls");
   } else {
-    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: Invalid Credentials. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>');
+    res.status(401).send(code401Cred);
   }
 });
 //displays login page
@@ -187,15 +201,14 @@ app.get("/register", (req, res) => {
     res.render("register", templateVars);
   }
 });
-
 //registers new user and adds it to userDatabase - CREATE (POST)
 app.post("/register", (req, res) => {
   let randomID = generateRandomString();
   const newUser = createUser(req.body, userDatabase, randomID);
   if (newUser.error === "email") {
-    res.status(400).send('<html><meta http-equiv=refresh content=5;URL=/register /><body><h1>Error 400: Bad Request: Invalid Email. If you are not redirected in 5 seconds <a href=/register>click here</a>.</h1></body></html>');
+    res.status(400).send(code400Email);
   } else if (newUser.error === "password") {
-    res.status(400).send('<html><meta http-equiv=refresh content=5;URL=/register /><body><h1>Error 400: Bad Request: Invalid Password. If you are not redirected in 5 seconds <a href=/register>click here</a>.</h1></body></html>');
+    res.status(400).send(code400Pass);
   } else {
     req.session.user_id = userDatabase[randomID].id;
     res.redirect("/urls");
