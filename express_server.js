@@ -9,12 +9,23 @@ const app = express();
 const PORT = 8080;
 app.set("view engine", "ejs");
 
+//---Middleware---//
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2']
 }))
 
+//gets user id from cookie, finds it in userDatabase
+//and assigns it to req.currentUser
+const userParser = (req, res, next) => {
+  const userID = req.session.user_id;
+  const user = userDatabase[userID];
+
+  req.currentUser = user;
+  next();
+};
+app.use(userParser);
 
 //---Databases---//
 //obj stands in for database
@@ -24,15 +35,15 @@ const urlDatabase = {
 };
 
 const userDatabase = {
-  "userRandomID": {
-    id: "userRandomID",
+  "instructorTest": {
+    id: "instructorTest",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync("passthisassignment", 10)
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "marky"
+    password: bcrypt.hashSync("2", 10)
   }
 };
 
@@ -53,9 +64,7 @@ app.get("/hello", (req, res) => {
 //---Displays urls_index (Main Page)---//
 app.get("/urls", (req, res) => {
   if (req.session.user_id) {
-    const currentUser = fetchUserByID(req.session.user_id, userDatabase)
-    console.log(currentUser)
-    const templateVars = { urls: urlsForUsers(req.session.user_id, urlDatabase), user: currentUser };
+    const templateVars = { urls: urlsForUsers(req.session.user_id, urlDatabase), user: req.currentUser };
     res.render("urls_index", templateVars)
   } else {
     res.redirect("/login")
@@ -65,7 +74,7 @@ app.get("/urls", (req, res) => {
 //---Displays urls_new (Creation Page)---//
 app.get("/urls/new", (req, res) => {
   if (req.session.user_id) {
-    const templateVars = { user: fetchUserByID(req.session.user_id, userDatabase) }
+    const templateVars = { user: req.currentUser }
     res.render("urls_new", templateVars);
   } else {
     res.redirect("/login")
@@ -74,7 +83,7 @@ app.get("/urls/new", (req, res) => {
 
 //---Displays urls_show (Any shortURL)---//
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: fetchUserByID(req.session.user_id, userDatabase) };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: req.currentUser };
 
   res.render("urls_show", templateVars);
 });
@@ -96,9 +105,8 @@ app.post("/urls", (req, res) => {
 //---URL Deletion---//
 //deletes a url from the db - DELETE (POST)
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const currentUser = fetchUserByID(req.session.user_id, userDatabase)
-  if (!currentUser) {
-    res.status(403).send("Not Your Account GTFO!")
+  if (!req.currentUser) {
+    res.status(403).send("Not Your Account GTFO!") //add html
   } else {
     delete urlDatabase[req.params.shortURL];
     res.redirect('/urls')
@@ -109,8 +117,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //edits a longURL in the db - UPDATE (POST)
 app.post("/urls/:shortURL/update", (req, res) => {
   //edit urlDatabase'
-  const currentUser = fetchUserByID(req.session.user_id, userDatabase)
-  if (!currentUser) {
+  if (!req.currentUser) {
     res.status(403).send("Not Your Account STFO")
   } else {
     console.log(req.body);
@@ -140,7 +147,7 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const templateVars = { user: fetchUserByID(req.session.user_id, userDatabase) }
+  const templateVars = { user: req.currentUser }
   res.render("login", templateVars);
 });
 
@@ -155,7 +162,7 @@ app.post("/logout", (req, res) => {
 //---Register Routes---//
 //displays register (Registration Page)
 app.get("/register", (req, res) => {
-  const templateVars = { user: fetchUserByID(req.session.user_id, userDatabase) }
+  const templateVars = { user: req.currentUser }
   res.render("register", templateVars)
 });
 
