@@ -50,15 +50,11 @@ const userDatabase = {
 //=======R O U T E S=======//
 
 app.get("/", (req, res) => {
-  res.send("Hello");
+  res.redirect("/urls")
 });
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n")
 });
 
 //---Displays urls_index (Main Page)---//
