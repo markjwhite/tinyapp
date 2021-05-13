@@ -47,4 +47,14 @@ const urlsForUsers = (id, db) => {
   return userURLS
 };
 
-module.exports = { fetchUserByEmail, fetchUserByID, generateRandomString, createUser, urlsForUsers };
+//Checks if user and password match the userdb
+const authenticateUser = (email, password, db) => {
+  const user = fetchUserByEmail(email, db);
+  if (user && bcrypt.compareSync(password, db[user].password)) {
+    return db[user];
+  } else {
+    return false;
+  }
+};
+
+module.exports = { fetchUserByEmail, fetchUserByID, generateRandomString, createUser, urlsForUsers, authenticateUser };

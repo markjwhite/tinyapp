@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const { response } = require('express');
 const bcrypt = require('bcrypt');
-const { fetchUserByEmail, fetchUserByID, generateRandomString, createUser, urlsForUsers } = require('./helpers');
+const { fetchUserByEmail, fetchUserByID, generateRandomString, createUser, urlsForUsers, authenticateUser } = require('./helpers');
 
 const app = express();
 const PORT = 8080;
@@ -18,6 +18,7 @@ app.use(cookieSession({
 
 //gets user id from cookie, finds it in userDatabase
 //and assigns it to req.currentUser
+//from DominicTremblay's https://github.com/DominicTremblay/w3d4-lecture/blob/demo-east-apr26-2021/server.js
 const userParser = (req, res, next) => {
   const userID = req.session.user_id;
   const user = userDatabase[userID];
@@ -112,7 +113,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //---URL Edit---//
 //edits a longURL in the db - UPDATE (POST)
 app.post("/urls/:shortURL/update", (req, res) => {
-  //edit urlDatabase'
   if (!req.currentUser) {
     res.status(403).send("Not Your Account STFO")
   } else {
@@ -122,32 +122,28 @@ app.post("/urls/:shortURL/update", (req, res) => {
 
 });
 
-//---Login Route---//
-
+//---Login Routes---//
+//authenticate user && login
 app.post("/login", (req, res) => {
   const logEmail = req.body.email;
   const logPass = req.body.password;
+  const currentUser = authenticateUser(logEmail, logPass, userDatabase);
 
-  if (fetchUserByEmail(logEmail, userDatabase)) {
-    let currentUser = fetchUserByEmail(logEmail, userDatabase);
-    if (bcrypt.compareSync(logPass, userDatabase[currentUser].password)) {
-      req.session.user_id = userDatabase[currentUser].id;
-      res.redirect("/urls");
-    } else {
-      res.status(403).send("Invalid Password") //add html
-    }
+  if (currentUser) {
+    req.session.user_id = currentUser.id;
+    res.redirect("/urls");
   } else {
-    res.status(403).send("Invalid Email") //add html
+    res.status(401).send("Invalid Credentials") //add html
   }
 });
-
+//displays login page
 app.get("/login", (req, res) => {
   const templateVars = { user: req.currentUser }
   res.render("login", templateVars);
 });
 
 //---Logout Route---//
-
+//deletes encrypted cookies
 app.post("/logout", (req, res) => {
   req.session = null;
   // res.clearCookie("user_id")
@@ -161,7 +157,7 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars)
 });
 
-//registers new user
+//registers new user and adds it to userDatabase - CREATE (POST)
 app.post("/register", (req, res) => {
   let id = generateRandomString();
   const newUser = createUser(req.body, userDatabase, id);
@@ -170,7 +166,6 @@ app.post("/register", (req, res) => {
   } else if (newUser.error === "password") {
     res.status(400).send("Invalid Password")
   } else {
-    console.log(userDatabase)
     req.session.user_id = userDatabase[id].id
     res.redirect("/urls")
   }
