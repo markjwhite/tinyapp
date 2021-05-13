@@ -3,18 +3,18 @@ const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const { response } = require('express');
 const bcrypt = require('bcrypt');
-const { fetchUserByEmail, fetchUserByID, generateRandomString, createUser, urlsForUsers, authenticateUser } = require('./helpers');
+const { generateRandomString, createUser, urlsForUsers, authenticateUser } = require('./helpers');
 
 const app = express();
 const PORT = 8080;
 app.set("view engine", "ejs");
 
 //---Middleware---//
-app.use(express.urlencoded({ extended: true }))
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2']
-}))
+}));
 
 //gets user id from cookie, finds it in userDatabase
 //and assigns it to req.currentUser
@@ -66,19 +66,19 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls", (req, res) => {
   if (req.currentUser) {
     const templateVars = { urls: urlsForUsers(req.currentUser.id, urlDatabase), user: req.currentUser };
-    res.render("urls_index", templateVars)
+    res.render("urls_index", templateVars);
   } else {
-    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>')
+    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>');
   }
 });
 
 //---Displays urls_new (Creation Page)---//
 app.get("/urls/new", (req, res) => {
   if (req.currentUser) {
-    const templateVars = { user: req.currentUser }
+    const templateVars = { user: req.currentUser };
     res.render("urls_new", templateVars);
   } else {
-    res.redirect("/login")
+    res.redirect("/login");
   }
 });
 
@@ -86,13 +86,13 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   if (req.currentUser) {
     if (!urlDatabase[req.params.shortURL]) {
-      res.status(404).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 404 Not Found: The Page You Requested Cannot Be Found. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>')
+      res.status(404).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 404 Not Found: The Page You Requested Cannot Be Found. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>');
       //checks if user matches url owner id
     } else if (urlDatabase[req.params.shortURL].userID === req.currentUser.id) {
       const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: req.currentUser };
       res.render("urls_show", templateVars);
     } else {
-      res.status(403).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>')
+      res.status(403).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>');
     }
   }
 });
@@ -100,7 +100,7 @@ app.get("/urls/:shortURL", (req, res) => {
 //---shortURL to longURL---//
 app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL].longURL) {
-    res.status(404).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 404 Not Found: The Page You Requested Cannot Be Found. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>')
+    res.status(404).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 404 Not Found: The Page You Requested Cannot Be Found. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>');
   } else {
     const longURL = urlDatabase[req.params.shortURL].longURL;
     res.redirect(longURL);
@@ -112,10 +112,10 @@ app.get("/u/:shortURL", (req, res) => {
 app.post("/urls", (req, res) => {
   //New URL
   if (!req.currentUser) {
-    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>')
+    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>');
   } else {
     const random = generateRandomString();
-    urlDatabase[random] = { longURL: req.body.longURL, userID: req.currentUser.id }
+    urlDatabase[random] = { longURL: req.body.longURL, userID: req.currentUser.id };
     res.redirect(`urls/${random}`);
   }
 });
@@ -125,11 +125,11 @@ app.post("/urls", (req, res) => {
 app.post("/urls/:shortURL/delete", (req, res) => {
   if (req.currentUser && urlDatabase[req.params.shortURL].userID === req.currentUser.id) {
     delete urlDatabase[req.params.shortURL];
-    res.redirect('/urls')
+    res.redirect('/urls');
   } else if (req.currentUser && !urlDatabase[req.params.shortURL].userID === req.currentUser.id) {
-    res.status(403).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>')
+    res.status(403).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>');
   } else {
-    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>')
+    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>');
   }
 });
 
@@ -140,9 +140,9 @@ app.post("/urls/:shortURL/update", (req, res) => {
     urlDatabase[req.params.shortURL].longURL = req.body.updateURL;
     res.redirect('/urls');
   } else if (req.currentUser && !urlDatabase[req.params.shortURL].userID === req.currentUser.id) {
-    res.status(403).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>')
+    res.status(403).send('<html><meta http-equiv=refresh content=5;URL=/urls /><body><h1>Error 403 Forbidden: You Do Not Have Access To This Page. If you are not redirected in 5 seconds <a href=/urls>click here</a>.</h1></body></html>');
   } else {
-    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>')
+    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: You must be logged in to access this page. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>');
   }
 });
 
@@ -157,15 +157,15 @@ app.post("/login", (req, res) => {
     req.session.user_id = currentUser.id;
     res.redirect("/urls");
   } else {
-    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: Invalid Credentials. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>')
+    res.status(401).send('<html><meta http-equiv=refresh content=5;URL=/login /><body><h1>Error 401 Unauthorized: Invalid Credentials. If you are not redirected in 5 seconds <a href=/login>click here</a>.</h1></body></html>');
   }
 });
 //displays login page
 app.get("/login", (req, res) => {
   if (req.currentUser) {
-    res.redirect('/urls')
+    res.redirect('/urls');
   } else {
-    const templateVars = { user: req.currentUser }
+    const templateVars = { user: req.currentUser };
     res.render("login", templateVars);
   }
 });
@@ -174,17 +174,17 @@ app.get("/login", (req, res) => {
 //deletes encrypted cookies
 app.post("/logout", (req, res) => {
   req.session = null;
-  res.redirect("/urls")
+  res.redirect("/urls");
 });
 
 //---Register Routes---//
 //displays register (Registration Page)
 app.get("/register", (req, res) => {
   if (req.currentUser) {
-    res.redirect('/urls')
+    res.redirect('/urls');
   } else {
-    const templateVars = { user: req.currentUser }
-    res.render("register", templateVars)
+    const templateVars = { user: req.currentUser };
+    res.render("register", templateVars);
   }
 });
 
@@ -193,12 +193,12 @@ app.post("/register", (req, res) => {
   let randomID = generateRandomString();
   const newUser = createUser(req.body, userDatabase, randomID);
   if (newUser.error === "email") {
-    res.status(400).send('<html><meta http-equiv=refresh content=5;URL=/register /><body><h1>Error 400: Bad Request: Invalid Email. If you are not redirected in 5 seconds <a href=/register>click here</a>.</h1></body></html>')
+    res.status(400).send('<html><meta http-equiv=refresh content=5;URL=/register /><body><h1>Error 400: Bad Request: Invalid Email. If you are not redirected in 5 seconds <a href=/register>click here</a>.</h1></body></html>');
   } else if (newUser.error === "password") {
-    res.status(400).send('<html><meta http-equiv=refresh content=5;URL=/register /><body><h1>Error 400: Bad Request: Invalid Password. If you are not redirected in 5 seconds <a href=/register>click here</a>.</h1></body></html>')
+    res.status(400).send('<html><meta http-equiv=refresh content=5;URL=/register /><body><h1>Error 400: Bad Request: Invalid Password. If you are not redirected in 5 seconds <a href=/register>click here</a>.</h1></body></html>');
   } else {
-    req.session.user_id = userDatabase[randomID].id
-    res.redirect("/urls")
+    req.session.user_id = userDatabase[randomID].id;
+    res.redirect("/urls");
   }
 });
 

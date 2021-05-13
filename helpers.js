@@ -9,16 +9,6 @@ const fetchUserByEmail = (email, db) => {
   return undefined;
 };
 
-const fetchUserByID = (userID, db) => {
-  for (const user_id in db) {
-    if (userID === user_id) {
-      const user = db[user_id]
-      return user;
-    }
-  }
-  return undefined;
-};
-
 const generateRandomString = () => {
   const random = Math.random().toString(36).substring(6);
   return random;
@@ -26,15 +16,15 @@ const generateRandomString = () => {
 
 const createUser = (userParams, db, id) => {
   if (fetchUserByEmail(userParams.email, db)) {
-    return { error: "email" }
+    return { error: "email" };
   }
   const { email, password } = userParams;
 
   if (!email || !password) {
-    return { error: "password" }
+    return { error: "password" };
   }
-  db[id] = { id, email, password: bcrypt.hashSync(password, 10) }
-  return { id, email, password }
+  db[id] = { id, email, password: bcrypt.hashSync(password, 10) };
+  return { id, email, password };
 };
 
 const urlsForUsers = (id, db) => {
@@ -44,7 +34,7 @@ const urlsForUsers = (id, db) => {
       userURLS[user] = db[user];
     }
   }
-  return userURLS
+  return userURLS;
 };
 
 //Checks if user and password match the userdb
@@ -57,4 +47,4 @@ const authenticateUser = (email, password, db) => {
   }
 };
 
-module.exports = { fetchUserByEmail, fetchUserByID, generateRandomString, createUser, urlsForUsers, authenticateUser };
+module.exports = { fetchUserByEmail, generateRandomString, createUser, urlsForUsers, authenticateUser };

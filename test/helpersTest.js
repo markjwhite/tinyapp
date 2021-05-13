@@ -16,12 +16,12 @@ const testUsers = {
 
 describe('fetchUserByEmail', function() {
   it('should return a user with valid email', () => {
-    const user = fetchUserByEmail("user@example.com", testUsers)
+    const user = fetchUserByEmail("user@example.com", testUsers);
     const expectedOutput = "userRandomID";
     assert.deepEqual(user, expectedOutput);
   });
   it('should return undefined if email is not found within the database', () => {
-    const user = fetchUserByEmail("notthere@doesn'texist.com")
+    const user = fetchUserByEmail("notthere@doesn'texist.com");
     const expectedOutput = undefined;
     assert.deepEqual(user, expectedOutput);
   });
