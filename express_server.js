@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const { response } = require('express');
 const bcrypt = require('bcrypt');
 
@@ -8,8 +8,11 @@ const app = express();
 const PORT = 8080;
 app.set("view engine", "ejs");
 
-app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }))
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}))
 
 
 //---Databases---//
@@ -97,10 +100,10 @@ app.get("/hello", (req, res) => {
 
 //---Displays urls_index (Main Page)---//
 app.get("/urls", (req, res) => {
-  if (req.cookies["user_id"]) {
-    const currentUser = fetchUserByID(req.cookies["user_id"])
+  if (req.session.user_id) {
+    const currentUser = fetchUserByID(req.session.user_id)
     console.log(currentUser)
-    const templateVars = { urls: urlsForUsers(req.cookies["user_id"], urlDatabase), user: currentUser };
+    const templateVars = { urls: urlsForUsers(req.session.user_id, urlDatabase), user: currentUser };
     res.render("urls_index", templateVars)
   } else {
     res.redirect("/login")
@@ -109,8 +112,8 @@ app.get("/urls", (req, res) => {
 
 //---Displays urls_new (Creation Page)---//
 app.get("/urls/new", (req, res) => {
-  if (req.cookies["user_id"]) {
-    const templateVars = { user: fetchUserByID(req.cookies["user_id"]) }
+  if (req.session.user_id) {
+    const templateVars = { user: fetchUserByID(req.session.user_id) }
     res.render("urls_new", templateVars);
   } else {
     res.redirect("/login")
@@ -119,7 +122,7 @@ app.get("/urls/new", (req, res) => {
 
 //---Displays urls_show (Any shortURL)---//
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: fetchUserByID(req.cookies["user_id"]) };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: fetchUserByID(req.session.user_id) };
 
   res.render("urls_show", templateVars);
 });
@@ -134,14 +137,14 @@ app.get("/u/:shortURL", (req, res) => {
 app.post("/urls", (req, res) => {
   //New URL
   const random = generateRandomString();
-  urlDatabase[random] = { longURL: req.body.longURL, userID: req.cookies["user_id"] }
+  urlDatabase[random] = { longURL: req.body.longURL, userID: req.session.user_id }
   res.redirect(`urls/${random}`);
 });
 
 //---URL Deletion---//
 //deletes a url from the db - DELETE (POST)
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const currentUser = fetchUserByID(req.cookies["user_id"])
+  const currentUser = fetchUserByID(req.session.user_id)
   if (!currentUser) {
     res.status(403).send("Not Your Account GTFO!")
   } else {
@@ -154,7 +157,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //edits a longURL in the db - UPDATE (POST)
 app.post("/urls/:shortURL/update", (req, res) => {
   //edit urlDatabase'
-  const currentUser = fetchUserByID(req.cookies["user_id"])
+  const currentUser = fetchUserByID(req.session.user_id)
   if (!currentUser) {
     res.status(403).send("Not Your Account STFO")
   } else {
@@ -174,32 +177,33 @@ app.post("/login", (req, res) => {
   if (fetchUser(logEmail, userDatabase)) {
     let currentUser = fetchUser(logEmail, userDatabase);
     if (bcrypt.compareSync(logPass, userDatabase[currentUser].password)) {
-      res.cookie("user_id", userDatabase[currentUser].id);
+      req.session.user_id = userDatabase[currentUser].id;
       res.redirect("/urls");
     } else {
-      res.status(403).send("Invalid Password")
+      res.status(403).send("Invalid Password") //add html
     }
   } else {
-    res.status(403).send("Invalid Email")
+    res.status(403).send("Invalid Email") //add html
   }
 });
 
 app.get("/login", (req, res) => {
-  const templateVars = { user: fetchUserByID(req.cookies["user_id"]) }
+  const templateVars = { user: fetchUserByID(req.session.user_id) }
   res.render("login", templateVars);
 });
 
 //---Logout Route---//
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id")
+  req.session = null;
+  // res.clearCookie("user_id")
   res.redirect("/urls")
 });
 
 //---Register Routes---//
 //displays register (Registration Page)
 app.get("/register", (req, res) => {
-  const templateVars = { user: fetchUserByID(req.cookies["user_id"]) }
+  const templateVars = { user: fetchUserByID(req.session.user_id) }
   res.render("register", templateVars)
 });
 
@@ -213,7 +217,7 @@ app.post("/register", (req, res) => {
     res.status(400).send("Invalid Password")
   } else {
     console.log(userDatabase)
-    res.cookie("user_id", userDatabase[id].id)
+    req.session.user_id = userDatabase[id].id
     res.redirect("/urls")
   }
 });
