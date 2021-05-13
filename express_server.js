@@ -10,7 +10,7 @@ const PORT = 8080;
 app.set("view engine", "ejs");
 
 //---Middleware---//
-app.use(bodyParser.urlencoded({ extended: true }))
+app.use(express.urlencoded({ extended: true }))
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2']
@@ -120,7 +120,6 @@ app.post("/urls/:shortURL/update", (req, res) => {
   if (!req.currentUser) {
     res.status(403).send("Not Your Account STFO")
   } else {
-    console.log(req.body);
     urlDatabase[req.params.shortURL].longURL = req.body.updateURL;
     res.redirect('/urls');
   }

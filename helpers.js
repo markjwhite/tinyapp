@@ -25,7 +25,6 @@ const generateRandomString = () => {
 };
 
 const createUser = (userParams, db, id) => {
-  console.log(userParams);
   if (fetchUserByEmail(userParams.email, db)) {
     return { error: "email" }
   }
