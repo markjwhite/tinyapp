@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const { response } = require('express');
 const bcrypt = require('bcrypt');
+const { fetchUserByEmail, fetchUserByID, generateRandomString, createUser, urlsForUsers } = require('./helpers');
 
 const app = express();
 const PORT = 8080;
@@ -36,53 +37,15 @@ const userDatabase = {
 };
 
 //---Helper Function---//
-const generateRandomString = () => {
-  const random = Math.random().toString(36).substring(6);
-  return random;
-};
 
-const fetchUser = (email) => {
-  for (const user in userDatabase) {
-    if (userDatabase[user].email === email) {
-      return user;
-    }
-  }
-  return null;
-}
 
-const fetchUserByID = (userID) => {
-  for (const user_id in userDatabase) {
-    if (userID === user_id) {
-      const user = userDatabase[user_id]
-      return user;
-    }
-  }
-  return undefined;
-}
 
-const createUser = (userParams, db, id) => {
-  console.log(userParams);
-  if (fetchUser(userParams.email, userDatabase)) {
-    return { error: "email" }
-  }
-  const { email, password } = userParams;
 
-  if (!email || !password) {
-    return { error: "password" }
-  }
-  db[id] = { id, email, password: bcrypt.hashSync(password, 10) }
-  return { id, email, password }
-};
 
-const urlsForUsers = (id, db) => {
-  const userURLS = {};
-  for (const user in db) {
-    if (db[user].userID === id) {
-      userURLS[user] = db[user];
-    }
-  }
-  return userURLS
-};
+
+
+
+
 
 //=======R O U T E S=======//
 
@@ -101,7 +64,7 @@ app.get("/hello", (req, res) => {
 //---Displays urls_index (Main Page)---//
 app.get("/urls", (req, res) => {
   if (req.session.user_id) {
-    const currentUser = fetchUserByID(req.session.user_id)
+    const currentUser = fetchUserByID(req.session.user_id, userDatabase)
     console.log(currentUser)
     const templateVars = { urls: urlsForUsers(req.session.user_id, urlDatabase), user: currentUser };
     res.render("urls_index", templateVars)
@@ -113,7 +76,7 @@ app.get("/urls", (req, res) => {
 //---Displays urls_new (Creation Page)---//
 app.get("/urls/new", (req, res) => {
   if (req.session.user_id) {
-    const templateVars = { user: fetchUserByID(req.session.user_id) }
+    const templateVars = { user: fetchUserByID(req.session.user_id, userDatabase) }
     res.render("urls_new", templateVars);
   } else {
     res.redirect("/login")
@@ -122,7 +85,7 @@ app.get("/urls/new", (req, res) => {
 
 //---Displays urls_show (Any shortURL)---//
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: fetchUserByID(req.session.user_id) };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: fetchUserByID(req.session.user_id, userDatabase) };
 
   res.render("urls_show", templateVars);
 });
@@ -144,7 +107,7 @@ app.post("/urls", (req, res) => {
 //---URL Deletion---//
 //deletes a url from the db - DELETE (POST)
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const currentUser = fetchUserByID(req.session.user_id)
+  const currentUser = fetchUserByID(req.session.user_id, userDatabase)
   if (!currentUser) {
     res.status(403).send("Not Your Account GTFO!")
   } else {
@@ -157,7 +120,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //edits a longURL in the db - UPDATE (POST)
 app.post("/urls/:shortURL/update", (req, res) => {
   //edit urlDatabase'
-  const currentUser = fetchUserByID(req.session.user_id)
+  const currentUser = fetchUserByID(req.session.user_id, userDatabase)
   if (!currentUser) {
     res.status(403).send("Not Your Account STFO")
   } else {
@@ -174,8 +137,8 @@ app.post("/login", (req, res) => {
   const logEmail = req.body.email;
   const logPass = req.body.password;
 
-  if (fetchUser(logEmail, userDatabase)) {
-    let currentUser = fetchUser(logEmail, userDatabase);
+  if (fetchUserByEmail(logEmail, userDatabase)) {
+    let currentUser = fetchUserByEmail(logEmail, userDatabase);
     if (bcrypt.compareSync(logPass, userDatabase[currentUser].password)) {
       req.session.user_id = userDatabase[currentUser].id;
       res.redirect("/urls");
@@ -188,7 +151,7 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const templateVars = { user: fetchUserByID(req.session.user_id) }
+  const templateVars = { user: fetchUserByID(req.session.user_id, userDatabase) }
   res.render("login", templateVars);
 });
 
@@ -203,7 +166,7 @@ app.post("/logout", (req, res) => {
 //---Register Routes---//
 //displays register (Registration Page)
 app.get("/register", (req, res) => {
-  const templateVars = { user: fetchUserByID(req.session.user_id) }
+  const templateVars = { user: fetchUserByID(req.session.user_id, userDatabase) }
   res.render("register", templateVars)
 });
 
