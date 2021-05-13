@@ -159,14 +159,14 @@ app.get("/register", (req, res) => {
 
 //registers new user and adds it to userDatabase - CREATE (POST)
 app.post("/register", (req, res) => {
-  let id = generateRandomString();
-  const newUser = createUser(req.body, userDatabase, id);
+  let randomID = generateRandomString();
+  const newUser = createUser(req.body, userDatabase, randomID);
   if (newUser.error === "email") {
     res.status(400).send("Invalid Email")
   } else if (newUser.error === "password") {
     res.status(400).send("Invalid Password")
   } else {
-    req.session.user_id = userDatabase[id].id
+    req.session.user_id = userDatabase[randomID].id
     res.redirect("/urls")
   }
 });
