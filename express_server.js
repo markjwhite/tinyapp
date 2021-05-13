@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { response } = require('express');
+const bcrypt = require('bcrypt');
 
 const app = express();
 const PORT = 8080;
@@ -66,7 +67,7 @@ const createUser = (userParams, db, id) => {
   if (!email || !password) {
     return { error: "password" }
   }
-  db[id] = { id, email, password }
+  db[id] = { id, email, password: bcrypt.hashSync(password, 10) }
   return { id, email, password }
 };
 
@@ -172,7 +173,7 @@ app.post("/login", (req, res) => {
 
   if (fetchUser(logEmail, userDatabase)) {
     let currentUser = fetchUser(logEmail, userDatabase);
-    if (logPass === userDatabase[currentUser].password) {
+    if (bcrypt.compareSync(logPass, userDatabase[currentUser].password)) {
       res.cookie("user_id", userDatabase[currentUser].id);
       res.redirect("/urls");
     } else {
